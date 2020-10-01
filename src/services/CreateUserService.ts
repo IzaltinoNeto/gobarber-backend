@@ -1,3 +1,4 @@
+import { hash } from "bcryptjs";
 import { getRepository } from "typeorm";
 import User from "../models/User";
 
@@ -10,7 +11,7 @@ export default class CreateUserService {
 
 
 
-    async execute({name, email, password}:Request): Promise<User> {
+    async execute({name, email, password}:Request): Promise<Partial<User>> {
         const usersRepository = getRepository(User);
 
         const checkUserExists = await usersRepository.findOne({
@@ -22,10 +23,13 @@ export default class CreateUserService {
             throw new Error("Email addresws already used.");
 
         }
+
+        const hashedPassword = await hash(password, 8);
+
         const user = usersRepository.create({
             name,
             email,
-            password
+            password: hashedPassword,
         })
 
         await usersRepository.save(user);
